@@ -9,14 +9,22 @@
     .box { margin: 2rem auto; width: 200px; height: 200px; background-color: #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; }
     .info { margin-top: 1rem; font-size: 1.2rem; }
     button { padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+    .nav { margin-bottom: 1rem; }
+    .nav a { text-decoration: none; background: #007bff; color: white; padding: 0.5rem 1rem; border-radius: 4px; }
   </style>
 </head>
 <body>
   <h1>Reaction Time Test</h1>
+
+  <div class="nav">
+    <a href="index.html">← Back to Tracker</a>
+  </div>
+
   <div class="box" id="testBox">Click to Start</div>
   <div class="info" id="result"></div>
   <button onclick="viewResults()">View Results</button>
   <div id="pastResults"></div>
+
   <script>
     const box = document.getElementById('testBox');
     const result = document.getElementById('result');
@@ -67,7 +75,8 @@
         pastResults.innerHTML = '<p>No reaction test results yet.</p>';
         return;
       }
-      pastResults.innerHTML = '<h3>Past Results:</h3>' +
+      const avg = (data.reduce((sum, r) => sum + r.time, 0) / data.length).toFixed(1);
+      pastResults.innerHTML = `<h3>Past Results (Last ${data.length}):</h3><p>Average: ${avg} ms</p>` +
         data.slice(0, 10).map(r => `<p>${new Date(r.date).toLocaleString()}: ${r.time} ms</p>`).join('');
     }
   </script>
