@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stress & HRV Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
+    input, button, select { margin: 0.5rem 0; padding: 0.5rem; width: 100%; }
+    .entry { background: white; padding: 1rem; margin-top: 1rem; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .entry p { margin: 0.25rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Stress & HRV Tracker</h1>
+
+  <form id="logForm">
+    <label for="hrv">HRV (ms):</label>
+    <input type="number" id="hrv" required />
+
+    <label for="stress">Stress Level (1-10):</label>
+    <input type="number" id="stress" min="1" max="10" required />
+
+    <button type="submit">Log Entry</button>
+  </form>
+
+  <h2>Entries</h2>
+  <div id="entries"></div>
+
+  <script>
+    const form = document.getElementById('logForm');
+    const entriesDiv = document.getElementById('entries');
+
+    function loadEntries() {
+      const data = JSON.parse(localStorage.getItem('entries') || '[]');
+      entriesDiv.innerHTML = '';
+      data.forEach(entry => {
+        const el = document.createElement('div');
+        el.className = 'entry';
+        el.innerHTML = `<p><strong>Date:</strong> ${new Date(entry.date).toLocaleString()}</p>
+                        <p><strong>HRV:</strong> ${entry.hrv} ms</p>
+                        <p><strong>Stress:</strong> ${entry.stress}/10</p>`;
+        entriesDiv.appendChild(el);
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const hrv = document.getElementById('hrv').value;
+      const stress = document.getElementById('stress').value;
+      const entry = { hrv, stress, date: new Date().toISOString() };
+
+      const data = JSON.parse(localStorage.getItem('entries') || '[]');
+      data.unshift(entry);
+      localStorage.setItem('entries', JSON.stringify(data));
+
+      form.reset();
+      loadEntries();
+    });
+
+    loadEntries();
+  </script>
+</body>
+</html>

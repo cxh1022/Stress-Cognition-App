@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stress & HRV Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+    #entries { margin-top: 30px; }
+    .entry { border-bottom: 1px solid #ccc; padding: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Stress & HRV Tracker</h1>
+
+  <form id="entryForm">
+    <label for="hrv">HRV (ms):</label>
+    <input type="number" id="hrv" required />
+
+    <label for="stress">Stress Level (1-10):</label>
+    <input type="number" id="stress" min="1" max="10" required />
+
+    <button type="submit">Log Entry</button>
+  </form>
+
+  <div id="entries">
+    <h2>Logged Entries</h2>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("entryForm");
+    const logDiv = document.getElementById("log");
+
+    function loadEntries() {
+      const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+      logDiv.innerHTML = entries
+        .map(e => `<div class="entry"><strong>${e.date}</strong><br>HRV: ${e.hrv} ms | Stress: ${e.stress}/10</div>`)
+        .join("");
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const hrv = document.getElementById("hrv").value;
+      const stress = document.getElementById("stress").value;
+      const date = new Date().toLocaleString();
+      const entry = { hrv, stress, date };
+
+      const entries = JSON.parse(localStorage.getItem("entries") || "[]");
+      entries.unshift(entry);
+      localStorage.setItem("entries", JSON.stringify(entries));
+
+      form.reset();
+      loadEntries();
+    });
+
+    loadEntries();
+  </script>
+</body>
+</html>
