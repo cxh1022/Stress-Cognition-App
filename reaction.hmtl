@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reaction Time Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; background-color: #f0f0f0; }
+    .box { margin: 2rem auto; width: 200px; height: 200px; background-color: #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+    .info { margin-top: 1rem; font-size: 1.2rem; }
+    button { padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+    .nav { margin-bottom: 1rem; }
+    .nav a { text-decoration: none; background: #007bff; color: white; padding: 0.5rem 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Reaction Time Test</h1>
+
+  <div class="nav">
+    <a href="index.html">← Back to Tracker</a>
+  </div>
+
+  <div class="box" id="testBox">Click to Start</div>
+  <div class="info" id="result"></div>
+  <button onclick="viewResults()">View Results</button>
+  <div id="pastResults"></div>
+
+  <script>
+    const box = document.getElementById('testBox');
+    const result = document.getElementById('result');
+    const pastResults = document.getElementById('pastResults');
+
+    let waiting = false;
+    let startTime;
+
+    function resetBox() {
+      box.textContent = 'Click to Start';
+      box.style.backgroundColor = '#ccc';
+      result.textContent = '';
+    }
+
+    box.addEventListener('click', () => {
+      if (!waiting) {
+        waiting = true;
+        box.textContent = 'Wait for Green...';
+        box.style.backgroundColor = '#d9534f';
+        setTimeout(() => {
+          startTime = Date.now();
+          box.textContent = 'CLICK!';
+          box.style.backgroundColor = '#5cb85c';
+          waiting = 'ready';
+        }, Math.random() * 3000 + 1000);
+      } else if (waiting === 'ready') {
+        const reactionTime = Date.now() - startTime;
+        result.textContent = `Your reaction time: ${reactionTime} ms`;
+        storeResult(reactionTime);
+        waiting = false;
+        setTimeout(resetBox, 1500);
+      } else {
+        result.textContent = 'Too soon! Wait for green.';
+        waiting = false;
+        setTimeout(resetBox, 1500);
+      }
+    });
+
+    function storeResult(time) {
+      const data = JSON.parse(localStorage.getItem('reactionTimes') || '[]');
+      data.unshift({ time, date: new Date().toISOString() });
+      localStorage.setItem('reactionTimes', JSON.stringify(data));
+    }
+
+    function viewResults() {
+      const data = JSON.parse(localStorage.getItem('reactionTimes') || '[]');
+      if (data.length === 0) {
+        pastResults.innerHTML = '<p>No reaction test results yet.</p>';
+        return;
+      }
+      const avg = (data.reduce((sum, r) => sum + r.time, 0) / data.length).toFixed(1);
+      pastResults.innerHTML = `<h3>Past Results (Last ${data.length}):</h3><p>Average: ${avg} ms</p>` +
+        data.slice(0, 10).map(r => `<p>${new Date(r.date).toLocaleString()}: ${r.time} ms</p>`).join('');
+    }
+  </script>
+</body>
+</html>
