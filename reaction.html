@@ -94,8 +94,10 @@
     });
 
     function storeResult(time) {
+      const dateToStore = new Date().toISOString();
+
       const data = JSON.parse(localStorage.getItem('reactionTimes') || '[]');
-      data.unshift({ time, date: new Date().toISOString() });
+      data.unshift({ time, date: dateToStore });
       localStorage.setItem('reactionTimes', JSON.stringify(data));
     }
 

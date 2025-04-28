@@ -10,6 +10,7 @@
     canvas { max-width: 800px; margin: auto; display: block; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     .nav { text-align: center; margin-bottom: 2rem; }
     .nav a { text-decoration: none; background: #007bff; color: white; padding: 0.6rem 1.2rem; border-radius: 5px; margin: 0 0.5rem; }
+    .message { text-align: center; margin-top: 2rem; font-size: 1.2rem; color: #555; }
   </style>
 </head>
 <body>
@@ -20,16 +21,19 @@
 
   <h2 style="text-align:center">Daily Trends: Reaction Time vs Stress Level</h2>
   <canvas id="trendChart" width="800" height="400"></canvas>
+  <div class="message" id="message"></div>
 
   <script>
     function groupByDay(data, key) {
       const grouped = {};
       data.forEach(item => {
-        const day = new Date(item.date).toLocaleDateString();
-        if (!grouped[day]) grouped[day] = [];
-        grouped[day].push(item[key]);
+        if (item.date && item[key] !== undefined) {
+          const day = new Date(item.date).toLocaleDateString();
+          if (!grouped[day]) grouped[day] = [];
+          grouped[day].push(item[key]);
+        }
       });
-      const labels = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+      const labels = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
       const values = labels.map(day => {
         const vals = grouped[day];
         return vals.reduce((sum, val) => sum + Number(val), 0) / vals.length;
@@ -37,72 +41,81 @@
       return { labels, values };
     }
 
-    const reactionData = JSON.parse(localStorage.getItem('reactionTimes') || '[]');
-    const stressData = JSON.parse(localStorage.getItem('entries') || '[]');
+    function loadChart() {
+      const reactionData = JSON.parse(localStorage.getItem('reactionTimes') || '[]');
+      const stressData = JSON.parse(localStorage.getItem('entries') || '[]');
 
-    const reactionByDay = groupByDay(reactionData, 'time');
-    const stressByDay = groupByDay(stressData, 'stress');
+      if (!reactionData.length && !stressData.length) {
+        document.getElementById('message').textContent = 'No data available. Complete some tests and log entries first!';
+        return;
+      }
 
-    const ctx = document.getElementById('trendChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: reactionByDay.labels,
-        datasets: [
-          {
-            label: 'Avg Reaction Time (ms)',
-            data: reactionByDay.values,
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            yAxisID: 'y1',
+      const reactionByDay = groupByDay(reactionData, 'time');
+      const stressByDay = groupByDay(stressData, 'stress');
+
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: reactionByDay.labels.length ? reactionByDay.labels : stressByDay.labels,
+          datasets: [
+            {
+              label: 'Avg Reaction Time (ms)',
+              data: reactionByDay.values,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              yAxisID: 'y1',
+            },
+            {
+              label: 'Avg Stress Level',
+              data: stressByDay.values,
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              yAxisID: 'y2',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
           },
-          {
-            label: 'Avg Stress Level',
-            data: stressByDay.values,
-            borderColor: 'rgba(255, 99, 132, 1)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            yAxisID: 'y2',
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        stacked: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Daily Averages of Reaction Time and Stress'
-          }
-        },
-        scales: {
-          y1: {
-            type: 'linear',
-            position: 'left',
+          stacked: false,
+          plugins: {
             title: {
               display: true,
-              text: 'Reaction Time (ms)'
+              text: 'Daily Averages of Reaction Time and Stress'
             }
           },
-          y2: {
-            type: 'linear',
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
+          scales: {
+            y1: {
+              type: 'linear',
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Reaction Time (ms)'
+              }
             },
-            title: {
-              display: true,
-              text: 'Stress Level (1-10)'
-            },
-            suggestedMin: 1,
-            suggestedMax: 10
+            y2: {
+              type: 'linear',
+              position: 'right',
+              grid: {
+                drawOnChartArea: false
+              },
+              title: {
+                display: true,
+                text: 'Stress Level (1-10)'
+              },
+              suggestedMin: 1,
+              suggestedMax: 10
+            }
           }
         }
-      }
-    });
+      });
+    }
+
+    loadChart();
   </script>
 </body>
 </html>

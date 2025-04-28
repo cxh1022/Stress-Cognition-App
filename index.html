@@ -10,8 +10,10 @@
     .entry { background: white; padding: 1rem; margin-top: 1rem; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
     .entry p { margin: 0.25rem 0; }
     .nav { text-align: center; margin-bottom: 2rem; }
-    .nav a { text-decoration: none; background: #007bff; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 1rem; display: inline-block; transition: background 0.3s; }
+    .nav a { text-decoration: none; background: #007bff; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 1rem; display: inline-block; transition: background 0.3s; margin: 0 0.5rem; }
     .nav a:hover { background: #0056b3; }
+    .reset-btn { background: #dc3545; color: white; padding: 0.5rem; border: none; margin-top: 1rem; border-radius: 6px; width: 100%; cursor: pointer; }
+    .reset-btn:hover { background: #c82333; }
   </style>
 </head>
 <body>
@@ -31,6 +33,8 @@
 
     <button type="submit">Log Entry</button>
   </form>
+
+  <button class="reset-btn" onclick="resetData()">Reset All Logged Data</button>
 
   <h2>Entries</h2>
   <div id="entries"></div>
@@ -56,7 +60,12 @@
       e.preventDefault();
       const hrv = document.getElementById('hrv').value;
       const stress = document.getElementById('stress').value;
-      const entry = { hrv, stress, date: new Date().toISOString() };
+
+      const entry = {
+        hrv,
+        stress,
+        date: new Date().toISOString()
+      };
 
       const data = JSON.parse(localStorage.getItem('entries') || '[]');
       data.unshift(entry);
@@ -65,6 +74,15 @@
       form.reset();
       loadEntries();
     });
+
+    function resetData() {
+      if (confirm('Are you sure you want to delete all recorded data?')) {
+        localStorage.removeItem('entries');
+        localStorage.removeItem('reactionTimes');
+        loadEntries();
+        alert('All data has been cleared.');
+      }
+    }
 
     loadEntries();
   </script>
